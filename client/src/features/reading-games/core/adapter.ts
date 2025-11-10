@@ -12,6 +12,72 @@ import { progressApi } from '../../../services/api';
  */
 export const ReadingGamesAdapter = {
   /**
+   * Helpers stockage local (fallback offline)
+   */
+  getLocalKey(userId: string) {
+    return `rg-progress:${userId}`;
+  },
+
+  readLocalProgress(userId: string): ProgressView[] {
+    try {
+      const raw = localStorage.getItem(this.getLocalKey(userId));
+      return raw ? (JSON.parse(raw) as ProgressView[]) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  writeLocalProgress(userId: string, items: ProgressView[]) {
+    try {
+      localStorage.setItem(this.getLocalKey(userId), JSON.stringify(items));
+    } catch {
+      // ignore quota errors
+    }
+  },
+  /**
+   * Vérifie si l'API est accessible (health check simple)
+   */
+  async isApiReachable(): Promise<boolean> {
+    try {
+      // appel léger: GET /progress?profileId=dummy (retournera probablement vide)
+      await progressApi.getByProfile('health-check');
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  /**
+   * Synchronise la progression locale vers le serveur quand il revient en ligne
+   */
+  async syncLocalToServer(userId: string): Promise<{ pushed: number; errors: number }> {
+    const local = this.readLocalProgress(userId);
+    if (!local.length) return { pushed: 0, errors: 0 };
+    let pushed = 0;
+    let errors = 0;
+    for (const item of local) {
+      try {
+        const level = this.slugToLevel(item.gameSlug);
+        await progressApi.upsert({
+          profileId: userId,
+          world: 4,
+          level,
+          stars: item.stars,
+          xp: item.best_score,
+          attemptsCount: 1,
+        });
+        pushed++;
+      } catch (e) {
+        errors++;
+      }
+    }
+    if (errors === 0) {
+      // Clear local only si tout est poussé
+      localStorage.removeItem(this.getLocalKey(userId));
+    }
+    console.log(`🔄 Sync Reading Games: pushed=${pushed}, errors=${errors}`);
+    return { pushed, errors };
+  },
+  /**
    * Liste tous les jeux Reading Games depuis le catalog
    */
   async listCatalog(): Promise<ReadingGame[]> {
@@ -50,7 +116,12 @@ export const ReadingGamesAdapter = {
       return readingGamesProgress;
     } catch (error) {
       console.error('Error loading reading games progress:', error);
-      return [];
+      // Fallback: lire depuis localStorage
+      const local = this.readLocalProgress(userId);
+      if (local.length) {
+        console.log('📦 Using offline Reading Games progress (localStorage)');
+      }
+      return local;
     }
   },
 
@@ -93,8 +164,26 @@ export const ReadingGamesAdapter = {
         last_played_at: new Date().toISOString(),
       };
     } catch (error) {
-      console.error('❌ Error saving reading games progress:', error);
-      throw error;
+      console.error('❌ Error saving reading games progress (API). Falling back to localStorage:', error);
+      // Fallback offline: fusionner et stocker en local
+      const current = this.readLocalProgress(p.userId);
+      const existingIdx = current.findIndex(x => x.gameSlug === p.gameSlug);
+      const newItem: ProgressView = {
+        gameSlug: p.gameSlug,
+        // Conserver le meilleur nombre d'étoiles
+        stars: Math.max(p.stars, existingIdx >= 0 ? current[existingIdx].stars : 0) as 0 | 1 | 2 | 3,
+        best_score: Math.max(p.score || 0, existingIdx >= 0 ? current[existingIdx].best_score : 0),
+        completed: (p.completed || false) || (existingIdx >= 0 ? current[existingIdx].completed : false),
+        last_played_at: new Date().toISOString(),
+      };
+      if (existingIdx >= 0) {
+        current[existingIdx] = newItem;
+      } else {
+        current.push(newItem);
+      }
+      this.writeLocalProgress(p.userId, current);
+      console.log('💾 Progress saved offline (localStorage). It will be available in UI and can be synced later.');
+      return newItem;
     }
   },
 
