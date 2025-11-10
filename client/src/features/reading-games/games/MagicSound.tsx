@@ -97,14 +97,58 @@ export default function MagicSound({ onFinish, onQuit, config }: GameProps) {
     }, 2000);
   };
 
+  // Écran de fin avec sauvegarde de la progression
   if (round > roundLength) {
+    // Calculer les étoiles
+    const percentage = (score / roundLength) * 100;
+    let stars: 0 | 1 | 2 | 3 = 0;
+    if (percentage >= 90) stars = 3;
+    else if (percentage >= 70) stars = 2;
+    else if (percentage >= 50) stars = 1;
+
     return (
-      <div className="flex min-h-screen items-center justify-center p-8">
-        <div className="text-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-100 to-pink-100 p-8">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="card max-w-md text-center"
+        >
           <div className="mb-4 text-6xl">🎉</div>
-          <p className="text-child-lg font-bold">Jeu terminé !</p>
-          <p className="text-child-base text-gray-600">Score: {score}/{roundLength}</p>
-        </div>
+          <h2 className="mb-4 font-display text-child-xl font-bold text-purple-700">
+            Bravo ! Jeu terminé !
+          </h2>
+          <p className="mb-4 text-child-lg text-gray-700">
+            Score: {score}/{roundLength}
+          </p>
+          <div className="mb-6 text-4xl">
+            {'⭐'.repeat(stars)}
+            {'☆'.repeat(3 - stars)}
+          </div>
+          <p className="mb-8 text-child-base text-gray-600">
+            {stars === 3 && 'Excellent travail !'}
+            {stars === 2 && 'Très bien !'}
+            {stars === 1 && 'Bon effort !'}
+            {stars === 0 && 'Continue de t\'entraîner !'}
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => onFinish({
+                stars,
+                score: (score / roundLength) * 100,
+                completed: true,
+              })}
+              className="btn btn-primary"
+            >
+              Continuer
+            </button>
+            <button
+              onClick={onQuit}
+              className="btn btn-secondary"
+            >
+              Quitter
+            </button>
+          </div>
+        </motion.div>
       </div>
     );
   }

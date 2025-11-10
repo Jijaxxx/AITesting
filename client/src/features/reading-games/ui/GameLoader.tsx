@@ -56,9 +56,20 @@ export default function GameLoader() {
   };
 
   const handleFinish = async (data: GameFinishData) => {
-    if (!currentProfile || !game) return;
+    if (!currentProfile || !game) {
+      console.error('❌ Cannot save: missing profile or game', { currentProfile, game });
+      return;
+    }
 
     try {
+      console.log('🎮 Game finished, saving progress...', {
+        userId: currentProfile.id,
+        gameSlug: game.slug,
+        stars: data.stars,
+        score: data.score,
+        completed: data.completed,
+      });
+
       // Sauvegarder la progression
       await ReadingGamesAdapter.upsertProgress({
         userId: currentProfile.id,
@@ -68,12 +79,14 @@ export default function GameLoader() {
         completed: data.completed,
       });
 
+      console.log('✅ Progress saved, navigating back...');
+
       // Retour à la liste des jeux avec message de succès
       navigate('/reading-games', {
         state: { completedGame: game.slug, stars: data.stars },
       });
     } catch (err) {
-      console.error('Error saving progress:', err);
+      console.error('❌ Error saving progress:', err);
       // Retour même en cas d'erreur
       navigate('/reading-games');
     }

@@ -40,7 +40,7 @@ export const ReadingGamesAdapter = {
       const readingGamesProgress = allProgress
         .filter((p: any) => p.world === 4) // Convention: world 4 = Reading Games
         .map((p: any) => ({
-          gameSlug: `reading-game-${p.level}`, // Convention pour mapper level -> slug
+          gameSlug: this.levelToSlug(p.level), // Convertir level -> slug correct
           stars: p.stars || 0,
           best_score: p.xp || 0,
           completed: p.stars >= 1,
@@ -73,7 +73,17 @@ export const ReadingGamesAdapter = {
         attemptsCount: 1,
       };
 
+      console.log('📊 Saving Reading Games progress:', {
+        gameSlug: p.gameSlug,
+        level,
+        stars: p.stars,
+        score: p.score,
+        profileId: p.userId,
+      });
+
       await progressApi.upsert(progressData);
+
+      console.log('✅ Progress saved successfully');
 
       return {
         gameSlug: p.gameSlug,
@@ -83,7 +93,7 @@ export const ReadingGamesAdapter = {
         last_played_at: new Date().toISOString(),
       };
     } catch (error) {
-      console.error('Error saving reading games progress:', error);
+      console.error('❌ Error saving reading games progress:', error);
       throw error;
     }
   },
