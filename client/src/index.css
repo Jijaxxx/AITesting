@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Styles de base pour accessibilité */
+  :root {
+    --font-size-base: 1rem;
+    --contrast-normal: 1;
+    --contrast-high: 1.2;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    font-size: var(--font-size-base);
+  }
+
+  /* Mode contraste élevé */
+  body.high-contrast {
+    --contrast-normal: var(--contrast-high);
+    filter: contrast(var(--contrast-high));
+  }
+
+  /* Mode grande police */
+  body.large-font {
+    --font-size-base: 1.25rem;
+  }
+
+  /* Réduction des animations */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body.motion-reduced *,
+  body.motion-reduced *::before,
+  body.motion-reduced *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  /* Bouton principal pour enfants */
+  .btn-child {
+    @apply rounded-2xl px-8 py-4 text-child-lg font-bold shadow-lg transition-transform active:scale-95;
+  }
+
+  .btn-primary {
+    @apply btn-child bg-primary-500 text-white hover:bg-primary-600;
+  }
+
+  .btn-secondary {
+    @apply btn-child bg-secondary-500 text-white hover:bg-secondary-600;
+  }
+
+  /* Carte de profil/niveau */
+  .card {
+    @apply rounded-3xl bg-white p-6 shadow-xl border-4 border-primary-100;
+  }
+
+  /* Focus visible (accessibilité clavier) */
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary-500 focus-visible:ring-offset-4;
+  }
+}

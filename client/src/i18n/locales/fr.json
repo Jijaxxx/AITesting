@@ -1,0 +1,72 @@
+{
+  "app": {
+    "title": "Lectio",
+    "tagline": "Apprends à lire en t'amusant !"
+  },
+  "profile": {
+    "select": "Choisis ton profil",
+    "create": "Créer un nouveau profil",
+    "name": "Prénom",
+    "age": "Âge",
+    "avatar": "Avatar",
+    "settings": "Paramètres",
+    "delete": "Supprimer"
+  },
+  "world": {
+    "title": "Carte des mondes",
+    "world1": "Monde des Voyelles",
+    "world2": "Monde des Digrammes",
+    "world3": "Monde des Explorateurs",
+    "locked": "Verrouillé",
+    "unlocked": "Déverrouillé"
+  },
+  "level": {
+    "level": "Niveau {{number}}",
+    "stars": "{{count}} étoile",
+    "stars_plural": "{{count}} étoiles",
+    "play": "Jouer",
+    "replay": "Rejouer"
+  },
+  "game": {
+    "loto_sons": "Loto des sons",
+    "peche_lettres": "Pêche aux lettres",
+    "course_syllabes": "Course des syllabes",
+    "dictee_karaoke": "Dictée karaoké",
+    "start": "Commencer",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "listen": "Écouter",
+    "correct": "Bravo !",
+    "incorrect": "Essaie encore !",
+    "timer": "Temps restant"
+  },
+  "rewards": {
+    "title": "Récompenses",
+    "badges": "Badges",
+    "stickers": "Autocollants",
+    "xp": "Points d'expérience"
+  },
+  "parent": {
+    "dashboard": "Tableau de bord Parent",
+    "progress": "Progression",
+    "stats": "Statistiques",
+    "export": "Exporter les données",
+    "import": "Importer les données"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "fontSize": "Taille du texte",
+    "normal": "Normal",
+    "large": "Grand",
+    "contrast": "Contraste",
+    "high": "Élevé",
+    "motion": "Animations",
+    "reduced": "Réduites",
+    "session": "Durée de session (min)"
+  },
+  "accessibility": {
+    "skipToMain": "Aller au contenu principal",
+    "close": "Fermer",
+    "menu": "Menu"
+  }
+}

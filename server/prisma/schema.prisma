@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Profil d'un enfant (max 4 par installation)
+model Profile {
+  id        String   @id @default(cuid())
+  pseudo    String   @db.VarChar(40)
+  age       Int
+  avatarKey String   @db.VarChar(40)
+  settings  Json     // { font: 'default'|'opendyslexic', contrast: boolean, reduceMotion: boolean, sessionMinutes: number }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  progress Progress[]
+  errors   ErrorStat[]
+  rewards  Reward?
+
+  @@index([pseudo])
+}
+
+// Progression d'un profil sur un niveau
+model Progress {
+  id            String   @id @default(cuid())
+  profileId     String
+  world         Int      // 1-3
+  level         Int      // 1-4
+  stars         Int      @default(0) // 0-3
+  xp            Int      @default(0)
+  attemptsCount Int      @default(0)
+  lastPlayedAt  DateTime @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, world, level])
+  @@index([profileId])
+}
+
+// Statistiques d'erreurs par compétence (phonème/digramme)
+model ErrorStat {
+  id        String @id @default(cuid())
+  profileId String
+  skillKey  String @db.VarChar(40) // ex: "a", "ch", "on"
+  count     Int    @default(0)
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, skillKey])
+  @@index([profileId, skillKey])
+}
+
+// Récompenses d'un profil (badges et stickers)
+model Reward {
+  id        String @id @default(cuid())
+  profileId String @unique
+  badges    Json   // [{key: string, earnedAt: string}]
+  stickers  Json   // ["unicorn_01", "star_02", ...]
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+// Compétence (phonème ou digramme)
+model Skill {
+  key     String @id // "a", "e", "ch", "on", etc.
+  type    String // "vowel" | "digraph"
+  samples Json   // ["avion", "ananas", ...]
+}
+
+// Définition d'un niveau (contenu server-driven)
+model LevelDef {
+  id     String @id @default(cuid())
+  world  Int    // 1-3
+  index  Int    // 1-4
+  game   String // "loto_sons" | "peche_lettres" | "course_syllabes" | "dictee_karaoke"
+  skills Json   // ["a", "e", "i"] - clés des compétences travaillées
+
+  @@unique([world, index])
+}

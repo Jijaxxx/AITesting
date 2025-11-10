@@ -1,0 +1,18 @@
+# Node
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build
+client/dist/
+server/dist/
+
+# IDE
+.vscode/
+.idea/

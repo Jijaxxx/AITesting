@@ -1,0 +1,23 @@
+{
+  "name": "lectio-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Application d'apprentissage de la lecture pour enfants (MVP)",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "build": "npm run build --prefix server && npm run build --prefix client",
+    "seed": "npm run seed --prefix server",
+    "prisma:generate": "npm run prisma:generate --prefix server",
+    "prisma:migrate": "npm run prisma:migrate --prefix server",
+    "prisma:studio": "npm run prisma:studio --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
