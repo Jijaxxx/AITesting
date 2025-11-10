@@ -37,7 +37,7 @@ interface CourseDesSyllabesProps {
 }
 
 export default function CourseDesSyllabes({ onComplete }: CourseDesSyllabesProps) {
-  const { speak } = useSpeech({ rate: 0.7, pitch: 1.1 });
+  const { speak } = useSpeech({ rate: 0.75, pitch: 1.0 });
   
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -92,7 +92,7 @@ export default function CourseDesSyllabes({ onComplete }: CourseDesSyllabesProps
 
       if (isCorrect) {
         setScore((prev) => prev + 1);
-        speak('Bravo ! Tu as trouvé le bon ordre ! 🎉');
+        speak('Bravo ! Tu as trouvé le bon ordre !');
       } else {
         speak(`Non, le mot est ${currentWord.word}. Essaie encore !`);
       }

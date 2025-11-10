@@ -14,7 +14,7 @@ interface PecheAuxLettresProps {
 }
 
 export default function PecheAuxLettres({ targetLetter, onComplete }: PecheAuxLettresProps) {
-  const { speak } = useSpeech({ rate: 0.8, pitch: 1.1 });
+  const { speak } = useSpeech({ rate: 0.85, pitch: 1.0 });
   
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -70,7 +70,7 @@ export default function PecheAuxLettres({ targetLetter, onComplete }: PecheAuxLe
     if (isCorrect) {
       setScore((prev) => prev + 1);
       setFeedback('correct');
-      speak('Bravo ! 🎣');
+      speak('Bravo !');
       
       // Retirer la lettre pêchée
       setLetters((prev) => prev.filter((_, i) => i !== index));

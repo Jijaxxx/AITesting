@@ -151,7 +151,7 @@ interface LotoSonsProps {
 }
 
 export default function LotoSons({ targetSound, onComplete }: LotoSonsProps) {
-  const { speak, isSpeaking } = useSpeech({ rate: 0.8, pitch: 1.1 });
+  const { speak, isSpeaking } = useSpeech({ rate: 0.85, pitch: 1.0 });
   
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -229,7 +229,7 @@ export default function LotoSons({ targetSound, onComplete }: LotoSonsProps) {
 
     if (isCorrect) {
       setScore((prev) => prev + 1);
-      speak('Bravo ! 🎉');
+      speak('Bravo !');
     } else {
       speak(`Non, c'était ${correctWord.word}`);
     }

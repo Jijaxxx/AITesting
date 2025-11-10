@@ -14,21 +14,76 @@ class SpeechService {
   }
 
   /**
-   * Charge la voix française préférée
+   * Nettoie le texte avant la lecture vocale
+   * - Supprime les emojis et symboles
+   * - Supprime la ponctuation excessive
+   * - Normalise les espaces
+   */
+  private cleanTextForSpeech(text: string): string {
+    return text
+      // Supprimer tous les emojis et symboles Unicode
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '') // Emojis divers
+      .replace(/[\u{2600}-\u{26FF}]/gu, '') // Symboles divers
+      .replace(/[\u{2700}-\u{27BF}]/gu, '') // Dingbats
+      .replace(/[\u{1F000}-\u{1F02F}]/gu, '') // Mahjong
+      .replace(/[\u{1F0A0}-\u{1F0FF}]/gu, '') // Cartes
+      .replace(/[\u{1F100}-\u{1F64F}]/gu, '') // Symboles
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Suppléments
+      .replace(/[\u{FE00}-\u{FE0F}]/gu, '') // Variation selectors
+      .replace(/[\u{E0000}-\u{E007F}]/gu, '') // Tags
+      // Supprimer caractères spéciaux et ponctuation excessive
+      .replace(/[★☆⭐]/g, 'étoile')
+      .replace(/[🎉🎊]/g, '')
+      .replace(/[!]{2,}/g, '!') // Limite les ! multiples
+      .replace(/[?]{2,}/g, '?') // Limite les ? multiples
+      .replace(/[\.]{2,}/g, '.') // Limite les . multiples
+      // Nettoyer les espaces
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  /**
+   * Charge la voix française préférée avec priorité sur les voix de qualité
    */
   private loadVoice() {
     const loadVoices = () => {
       const voices = this.synth.getVoices();
       if (voices.length === 0) return;
       
-      // Préférence: voix française, puis voix féminine par défaut
+      // Liste de priorité des meilleures voix françaises
+      const preferredVoices = [
+        'Microsoft Hortense - French (France)',
+        'Google français',
+        'Thomas',
+        'Amelie',
+        'French Female',
+        'fr-FR-Standard-A',
+        'fr-FR-Wavenet-A',
+      ];
+
+      // Chercher les voix dans l'ordre de préférence
+      for (const preferred of preferredVoices) {
+        const found = voices.find((v) => 
+          v.name.includes(preferred) || v.name === preferred
+        );
+        if (found) {
+          this.voice = found;
+          this.voicesLoaded = true;
+          console.log('🎤 Voix chargée:', this.voice.name, '(', this.voice.lang, ')');
+          return;
+        }
+      }
+
+      // Sinon, chercher une voix française féminine
       this.voice =
-        voices.find((v) => v.lang.startsWith('fr-') && v.name.includes('Female')) ||
+        voices.find((v) => v.lang.startsWith('fr-') && v.name.toLowerCase().includes('female')) ||
+        voices.find((v) => v.lang.startsWith('fr-') && v.name.toLowerCase().includes('femme')) ||
         voices.find((v) => v.lang.startsWith('fr-')) ||
         voices[0];
       
       this.voicesLoaded = true;
-      console.log('Voice loaded:', this.voice?.name, this.voice?.lang);
+      console.log('🎤 Voix par défaut:', this.voice?.name, '(', this.voice?.lang, ')');
     };
 
     // Charger les voix (peut être asynchrone selon les navigateurs)
@@ -86,6 +141,16 @@ class SpeechService {
     // Attendre que les voix soient chargées
     await this.waitForVoices();
     
+    // Nettoyer le texte avant de le lire
+    const cleanText = this.cleanTextForSpeech(text);
+    
+    // Ne rien lire si le texte est vide après nettoyage
+    if (!cleanText || cleanText.trim().length === 0) {
+      console.log('⚠️ Texte vide après nettoyage, lecture annulée');
+      options?.onEnd?.();
+      return Promise.resolve();
+    }
+    
     return new Promise((resolve, reject) => {
       // Annuler toute lecture en cours
       if (this.synth.speaking) {
@@ -94,10 +159,10 @@ class SpeechService {
 
       // Petit délai pour s'assurer que la synthèse est bien arrêtée
       setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(text);
+        const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'fr-FR';
-        utterance.pitch = options?.pitch ?? 1;
-        utterance.rate = options?.rate ?? 0.9; // Légèrement plus lent pour les enfants
+        utterance.pitch = options?.pitch ?? 1.0; // Voix naturelle
+        utterance.rate = options?.rate ?? 0.85; // Légèrement plus lent pour les enfants
         utterance.volume = options?.volume ?? 1;
 
         if (this.voice) {
@@ -121,7 +186,7 @@ class SpeechService {
           reject(error);
         };
 
-        console.log('Speaking:', text, 'with voice:', this.voice?.name);
+        console.log('🔊 Lecture:', cleanText, '| Voix:', this.voice?.name);
         this.synth.speak(utterance);
       }, 100);
     });
@@ -170,13 +235,39 @@ class SpeechService {
   }
 
   /**
+   * Récupère uniquement les voix françaises
+   */
+  getFrenchVoices(): SpeechSynthesisVoice[] {
+    return this.getAvailableVoices().filter(v => v.lang.startsWith('fr'));
+  }
+
+  /**
    * Change la voix utilisée
    */
   setVoice(voiceIndex: number) {
     const voices = this.getAvailableVoices();
     if (voices[voiceIndex]) {
       this.voice = voices[voiceIndex];
+      console.log('🎤 Voix changée:', this.voice.name);
     }
+  }
+
+  /**
+   * Change la voix par son nom
+   */
+  setVoiceByName(voiceName: string) {
+    const voice = this.getAvailableVoices().find(v => v.name === voiceName);
+    if (voice) {
+      this.voice = voice;
+      console.log('🎤 Voix changée:', this.voice.name);
+    }
+  }
+
+  /**
+   * Récupère la voix actuelle
+   */
+  getCurrentVoice(): SpeechSynthesisVoice | null {
+    return this.voice;
   }
 }
 

@@ -66,7 +66,7 @@ interface DicteeKaraokeProps {
 }
 
 export default function DicteeKaraoke({ onComplete }: DicteeKaraokeProps) {
-  const { speak } = useSpeech({ rate: 0.7, pitch: 1.0 });
+  const { speak } = useSpeech({ rate: 0.75, pitch: 1.0 });
   
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -124,7 +124,7 @@ export default function DicteeKaraoke({ onComplete }: DicteeKaraokeProps) {
 
     if (isCorrect) {
       setScore((prev) => prev + 1);
-      speak('Bravo ! Tout est correct ! 🎉');
+      speak('Bravo ! Tout est correct !');
     } else {
       speak('Presque ! Regarde la correction.');
     }
