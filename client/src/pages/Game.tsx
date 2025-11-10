@@ -3,6 +3,27 @@ import { useState } from 'react';
 import { useProfileStore } from '../stores/profileStore';
 import { progressApi } from '../services/api';
 import LotoSons from '../games/LotoSons';
+import PecheAuxLettres from '../games/PecheAuxLettres';
+import CourseDesSyllabes from '../games/CourseDesSyllabes';
+import DicteeKaraoke from '../games/DicteeKaraoke';
+
+// Mapping des jeux et compétences par niveau (devrait venir de l'API en production)
+const LEVEL_CONFIG: Record<string, { game: string; targetSkill: string }> = {
+  '1-1': { game: 'loto_sons', targetSkill: 'a' },
+  '1-2': { game: 'peche_lettres', targetSkill: 'e' },
+  '1-3': { game: 'course_syllabes', targetSkill: 'i' },
+  '1-4': { game: 'dictee_karaoke', targetSkill: 'o' },
+  
+  '2-1': { game: 'loto_sons', targetSkill: 'ch' },
+  '2-2': { game: 'peche_lettres', targetSkill: 'ou' },
+  '2-3': { game: 'course_syllabes', targetSkill: 'on' },
+  '2-4': { game: 'dictee_karaoke', targetSkill: 'ch' },
+  
+  '3-1': { game: 'loto_sons', targetSkill: 'an' },
+  '3-2': { game: 'peche_lettres', targetSkill: 'in' },
+  '3-3': { game: 'course_syllabes', targetSkill: 'an' },
+  '3-4': { game: 'dictee_karaoke', targetSkill: 'in' },
+};
 
 export default function Game() {
   const { world, level } = useParams<{ world: string; level: string }>();
@@ -92,6 +113,20 @@ export default function Game() {
     );
   }
 
-  // Pour l'instant, tous les niveaux utilisent LotoSons (à adapter selon le level/world)
-  return <LotoSons targetSound="a" onComplete={handleGameComplete} />;
+  // Charger le bon jeu selon le niveau
+  const levelKey = `${world}-${level}`;
+  const config = LEVEL_CONFIG[levelKey] || { game: 'loto_sons', targetSkill: 'a' };
+
+  switch (config.game) {
+    case 'loto_sons':
+      return <LotoSons targetSound={config.targetSkill} onComplete={handleGameComplete} />;
+    case 'peche_lettres':
+      return <PecheAuxLettres targetLetter={config.targetSkill} onComplete={handleGameComplete} />;
+    case 'course_syllabes':
+      return <CourseDesSyllabes onComplete={handleGameComplete} />;
+    case 'dictee_karaoke':
+      return <DicteeKaraoke onComplete={handleGameComplete} />;
+    default:
+      return <LotoSons targetSound={config.targetSkill} onComplete={handleGameComplete} />;
+  }
 }
