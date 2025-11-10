@@ -49,7 +49,7 @@ export default function LotoSons({ targetSound, onComplete }: LotoSonsProps) {
 
   // Générer une nouvelle question
   useEffect(() => {
-    if (!gameStarted || round >= totalRounds || round === 0) return;
+    if (!gameStarted || round === 0 || round > totalRounds) return;
 
     const targetWords = SAMPLE_WORDS[targetSound] || SAMPLE_WORDS.a;
     const allWords = Object.values(SAMPLE_WORDS).flat();
@@ -69,6 +69,8 @@ export default function LotoSons({ targetSound, onComplete }: LotoSonsProps) {
     setCorrectWord(correct);
     setOptions(shuffled);
     setFeedback(null);
+
+    console.log(`Génération question round ${round}`);
 
     // Lire le mot après un court délai
     setTimeout(() => {
@@ -108,6 +110,8 @@ export default function LotoSons({ targetSound, onComplete }: LotoSonsProps) {
     const isCorrect = word.word === correctWord.word;
     setFeedback(isCorrect ? 'correct' : 'incorrect');
 
+    console.log(`Round ${round}/${totalRounds} - Réponse: ${isCorrect ? 'correcte' : 'incorrecte'}`);
+
     if (isCorrect) {
       setScore((prev) => prev + 1);
       speak('Bravo ! 🎉');
@@ -117,12 +121,16 @@ export default function LotoSons({ targetSound, onComplete }: LotoSonsProps) {
 
     // Passer à la question suivante après 2 secondes
     setTimeout(() => {
+      console.log(`Après timeout - Round actuel: ${round}, Total: ${totalRounds}`);
       if (round < totalRounds) {
+        console.log('Passage au round suivant');
         setRound((prev) => prev + 1);
       } else {
         // Jeu terminé
         const timeSpent = Math.floor((Date.now() - startTime) / 1000);
-        onComplete({ correct: score + (isCorrect ? 1 : 0), total: totalRounds, timeSpent });
+        const finalScore = { correct: score + (isCorrect ? 1 : 0), total: totalRounds, timeSpent };
+        console.log('Jeu terminé, score final:', finalScore);
+        onComplete(finalScore);
       }
     }, 2000);
   };

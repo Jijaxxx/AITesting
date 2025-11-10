@@ -12,6 +12,7 @@ export default function Game() {
   const [gameScore, setGameScore] = useState<{ correct: number; total: number; timeSpent: number } | null>(null);
 
   const handleGameComplete = async (score: { correct: number; total: number; timeSpent: number }) => {
+    console.log('handleGameComplete appelé avec score:', score);
     setGameScore(score);
     setIsCompleted(true);
 
@@ -26,6 +27,8 @@ export default function Game() {
     const speedBonus = score.timeSpent < 30 ? 20 : score.timeSpent < 45 ? 10 : 0;
     const xp = baseXP + speedBonus;
 
+    console.log('Sauvegarde progression:', { stars, xp, percentage });
+
     try {
       // Sauvegarder la progression
       await progressApi.upsert({
@@ -35,6 +38,7 @@ export default function Game() {
         stars,
         xp,
       });
+      console.log('Progression sauvegardée avec succès');
     } catch (error) {
       console.error('Erreur sauvegarde progression:', error);
     }
