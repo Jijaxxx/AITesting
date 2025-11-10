@@ -7,6 +7,7 @@ import PecheAuxLettres from '../games/PecheAuxLettres';
 import CourseDesSyllabes from '../games/CourseDesSyllabes';
 import DicteeKaraoke from '../games/DicteeKaraoke';
 import { AVATARS } from '../components/AvatarGrid';
+import { getWorldTheme } from '../config/worldThemes';
 
 // Mapping des jeux et compétences par niveau (devrait venir de l'API en production)
 const LEVEL_CONFIG: Record<string, { game: string; targetSkill: string }> = {
@@ -117,6 +118,8 @@ export default function Game() {
   // Charger le bon jeu selon le niveau
   const levelKey = `${world}-${level}`;
   const config = LEVEL_CONFIG[levelKey] || { game: 'loto_sons', targetSkill: 'a' };
+  const worldNum = parseInt(world || '1');
+  const theme = getWorldTheme(worldNum);
 
   // Trouver l'emoji de l'avatar
   const getAvatarEmoji = (avatarKey: string): string => {
@@ -126,24 +129,25 @@ export default function Game() {
 
   // Header avec profil et bouton retour
   const GameHeader = () => (
-    <div className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm shadow-md z-50">
+    <div className={`fixed top-0 left-0 right-0 backdrop-blur-sm shadow-md z-50 ${theme.gradient}`}>
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => navigate(`/world/${currentProfile?.id}`)}
-          className="rounded-xl px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors font-bold text-child-base"
+          className="rounded-xl px-4 py-2 bg-white/90 hover:bg-white transition-colors font-bold text-child-base shadow-lg"
         >
           ← Retour
         </button>
         
         {currentProfile && (
-          <div className="flex items-center gap-2 bg-primary-50 rounded-xl px-4 py-2">
+          <div className="flex items-center gap-2 bg-white/90 rounded-xl px-4 py-2 shadow-lg">
             <span className="text-2xl">{getAvatarEmoji(currentProfile.avatarKey)}</span>
             <span className="font-bold text-child-base">{currentProfile.pseudo}</span>
           </div>
         )}
 
-        <div className="rounded-xl px-4 py-2 bg-secondary-50 font-bold text-child-base">
-          Monde {world} - Niveau {level}
+        <div className="flex items-center gap-2 rounded-xl px-4 py-2 bg-white/90 font-bold text-child-base shadow-lg">
+          <span className="text-2xl">{theme.emoji}</span>
+          <span>{theme.name} - Niveau {level}</span>
         </div>
       </div>
     </div>
