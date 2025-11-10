@@ -6,6 +6,7 @@ import LotoSons from '../games/LotoSons';
 import PecheAuxLettres from '../games/PecheAuxLettres';
 import CourseDesSyllabes from '../games/CourseDesSyllabes';
 import DicteeKaraoke from '../games/DicteeKaraoke';
+import { AVATARS } from '../components/AvatarGrid';
 
 // Mapping des jeux et compétences par niveau (devrait venir de l'API en production)
 const LEVEL_CONFIG: Record<string, { game: string; targetSkill: string }> = {
@@ -117,16 +118,82 @@ export default function Game() {
   const levelKey = `${world}-${level}`;
   const config = LEVEL_CONFIG[levelKey] || { game: 'loto_sons', targetSkill: 'a' };
 
+  // Trouver l'emoji de l'avatar
+  const getAvatarEmoji = (avatarKey: string): string => {
+    const avatar = AVATARS.find(a => a.key === avatarKey);
+    return avatar?.emoji || '👤';
+  };
+
+  // Header avec profil et bouton retour
+  const GameHeader = () => (
+    <div className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm shadow-md z-50">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <button
+          onClick={() => navigate(`/world/${currentProfile?.id}`)}
+          className="rounded-xl px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors font-bold text-child-base"
+        >
+          ← Retour
+        </button>
+        
+        {currentProfile && (
+          <div className="flex items-center gap-2 bg-primary-50 rounded-xl px-4 py-2">
+            <span className="text-2xl">{getAvatarEmoji(currentProfile.avatarKey)}</span>
+            <span className="font-bold text-child-base">{currentProfile.pseudo}</span>
+          </div>
+        )}
+
+        <div className="rounded-xl px-4 py-2 bg-secondary-50 font-bold text-child-base">
+          Monde {world} - Niveau {level}
+        </div>
+      </div>
+    </div>
+  );
+
   switch (config.game) {
     case 'loto_sons':
-      return <LotoSons targetSound={config.targetSkill} onComplete={handleGameComplete} />;
+      return (
+        <>
+          <GameHeader />
+          <div className="pt-20">
+            <LotoSons targetSound={config.targetSkill} onComplete={handleGameComplete} />
+          </div>
+        </>
+      );
     case 'peche_lettres':
-      return <PecheAuxLettres targetLetter={config.targetSkill} onComplete={handleGameComplete} />;
+      return (
+        <>
+          <GameHeader />
+          <div className="pt-20">
+            <PecheAuxLettres targetLetter={config.targetSkill} onComplete={handleGameComplete} />
+          </div>
+        </>
+      );
     case 'course_syllabes':
-      return <CourseDesSyllabes onComplete={handleGameComplete} />;
+      return (
+        <>
+          <GameHeader />
+          <div className="pt-20">
+            <CourseDesSyllabes onComplete={handleGameComplete} />
+          </div>
+        </>
+      );
     case 'dictee_karaoke':
-      return <DicteeKaraoke onComplete={handleGameComplete} />;
+      return (
+        <>
+          <GameHeader />
+          <div className="pt-20">
+            <DicteeKaraoke onComplete={handleGameComplete} />
+          </div>
+        </>
+      );
     default:
-      return <LotoSons targetSound={config.targetSkill} onComplete={handleGameComplete} />;
+      return (
+        <>
+          <GameHeader />
+          <div className="pt-20">
+            <LotoSons targetSound={config.targetSkill} onComplete={handleGameComplete} />
+          </div>
+        </>
+      );
   }
 }
