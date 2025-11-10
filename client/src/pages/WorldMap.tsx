@@ -6,6 +6,7 @@ import { progressApi } from '../services/api';
 import PageTransition from '../components/PageTransition';
 import { AVATARS } from '../components/AvatarGrid';
 import { WORLD_THEMES } from '../config/worldThemes';
+import { FEATURES } from '../config/features';
 
 export default function WorldMap() {
   const { profileId } = useParams<{ profileId: string }>();
@@ -49,6 +50,20 @@ export default function WorldMap() {
             </div>
           )}
         </div>
+
+        {/* Bouton Reading Games */}
+        {FEATURES.READING_GAMES_ENABLED && (
+          <div className="mb-8 flex justify-center">
+            <button
+              onClick={() => navigate('/reading-games')}
+              className="btn bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-child-lg px-8 py-4 shadow-xl hover:shadow-2xl hover:scale-105 transition-all flex items-center gap-3"
+            >
+              <span className="text-3xl">📚</span>
+              <span className="font-bold">Jeux de Lecture</span>
+              <span className="text-3xl">✨</span>
+            </button>
+          </div>
+        )}
 
         {/* Carte des mondes */}
         <div className="flex items-center justify-center">

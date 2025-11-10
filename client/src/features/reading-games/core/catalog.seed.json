@@ -1,0 +1,101 @@
+[
+  {
+    "slug": "magic-sound",
+    "title": "Sons Magiques",
+    "game_type": "sound_to_letter",
+    "difficulty_level": 1,
+    "description": "Écoute le son et choisis la bonne lettre",
+    "instructions": "Clique sur la lettre qui fait le son que tu entends",
+    "assets": {
+      "audio": ["a.mp3", "e.mp3", "i.mp3", "o.mp3", "u.mp3", "ch.mp3", "f.mp3", "s.mp3"]
+    },
+    "expected_output": {
+      "roundLength": 8
+    },
+    "is_active": true,
+    "category": "reading-games"
+  },
+  {
+    "slug": "gesture-to-letter",
+    "title": "Gestes des Lettres",
+    "game_type": "gesture_to_letter",
+    "difficulty_level": 1,
+    "description": "Regarde le geste et trouve la lettre",
+    "instructions": "Observe le geste et clique sur la lettre correspondante",
+    "assets": {
+      "gestures": ["f.json", "ch.json", "s.json", "a.json", "m.json", "l.json"]
+    },
+    "expected_output": {
+      "roundLength": 6
+    },
+    "is_active": true,
+    "category": "reading-games"
+  },
+  {
+    "slug": "friends-of-sounds",
+    "title": "Amis des Sons",
+    "game_type": "character_sound_matching",
+    "difficulty_level": 1,
+    "description": "Associe chaque lettre à son image",
+    "instructions": "Clique sur la lettre puis sur l'image qui commence par ce son",
+    "assets": {
+      "characters": ["a.png", "b.png", "s.png", "m.png", "l.png"],
+      "images": ["ballon.png", "serpent.png", "avion.png", "maman.png", "lune.png"]
+    },
+    "expected_output": {
+      "matchesRequired": 5
+    },
+    "is_active": true,
+    "category": "reading-games"
+  },
+  {
+    "slug": "magic-syllables",
+    "title": "Syllabes Magiques",
+    "game_type": "syllable_builder",
+    "difficulty_level": 2,
+    "description": "Compose des syllabes en assemblant des lettres",
+    "instructions": "Glisse les lettres pour former la syllabe demandée",
+    "assets": {
+      "letters": ["M", "A", "P", "F", "L", "I", "O", "U"]
+    },
+    "expected_output": {
+      "validSyllables": ["MA", "PA", "FA", "LA", "LI", "LO", "LU", "MI", "PI", "FI"]
+    },
+    "is_active": true,
+    "category": "reading-games"
+  },
+  {
+    "slug": "hidden-words",
+    "title": "Mots Cachés",
+    "game_type": "word_to_image",
+    "difficulty_level": 2,
+    "description": "Trouve le mot qui correspond à l'image",
+    "instructions": "Regarde l'image et choisis le bon mot parmi les trois propositions",
+    "assets": {
+      "images": ["chat.png", "lune.png", "papa.png", "ballon.png", "maison.png"]
+    },
+    "expected_output": {
+      "wordsPerRound": 3,
+      "roundsForStory": 5
+    },
+    "is_active": true,
+    "category": "reading-games"
+  },
+  {
+    "slug": "magic-story",
+    "title": "Histoire Magique",
+    "game_type": "sentence_comprehension",
+    "difficulty_level": 3,
+    "description": "Lis et comprends de petites phrases",
+    "instructions": "Lis la phrase et réponds à la question",
+    "assets": {
+      "audio": ["scene1.mp3", "scene2.mp3", "scene3.mp3"],
+      "images": ["story1.png", "story2.png", "story3.png"]
+    },
+    "expected_output": {
+      "questionsPerStory": 3
+    },
+    "is_active": true,
+    "category": "reading-games"
+  }
+]
