@@ -51,6 +51,7 @@ export default defineConfig({
     }),
   ],
   server: {
+    host: '0.0.0.0', // Expose sur toutes les interfaces réseau
     port: 5173,
     proxy: {
       '/api': {
