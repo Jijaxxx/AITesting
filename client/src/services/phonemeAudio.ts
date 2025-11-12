@@ -154,8 +154,8 @@ export class PhonemeAudioService {
       }
       
       // Paramètres pour clarté maximale
-      utterance.rate = 0.7;  // Plus lent pour les enfants
-      utterance.pitch = 1.1;  // Légèrement plus aigu (voix enfantine)
+      utterance.rate = 0.6;  // Encore plus lent (40% plus lent que normal)
+      utterance.pitch = 1.2;  // Plus aigu pour voix enfantine
       utterance.volume = 1.0;
       
       utterance.onend = () => resolve();
@@ -173,17 +173,54 @@ export class PhonemeAudioService {
    * Ex: "ch" + "chat" → "cha" (juste le son initial)
    */
   private extractSound(phoneme: string, example: string): string {
-    // Pour les digraphes, prendre le début du mot + une voyelle
+    // Pour "ch" → "cha cha" (avec voyelle pour prononciation claire)
+    if (phoneme === 'ch') {
+      return 'cha cha cha';
+    }
+    
+    // Pour les sons nasaux - IMPORTANT: utiliser des syllabes complètes
+    // car la synthèse vocale ne prononce pas bien les nasales isolées
+    if (phoneme === 'on') {
+      return 'bon son ton'; // Mots simples avec le son /ɔ̃/
+    }
+    if (phoneme === 'an') {
+      return 'banc tant quand'; // Mots avec le son /ɑ̃/
+    }
+    if (phoneme === 'in') {
+      return 'pin tin lin'; // Mots avec le son /ɛ̃/
+    }
+    if (phoneme === 'un') {
+      return 'un brun chacun';
+    }
+    
+    // Pour "ou" → utiliser syllabe
+    if (phoneme === 'ou') {
+      return 'cou tout loup'; // Mots courts avec /u/
+    }
+    
+    // Pour "oi"
+    if (phoneme === 'oi') {
+      return 'toi moi roi';
+    }
+    
+    // Pour "au" / "eau"
+    if (phoneme === 'au' || phoneme === 'eau') {
+      return 'chaud beau auto';
+    }
+    
+    // Pour autres digraphes, prendre le début du mot + répéter
     if (phoneme.length > 1) {
-      return example.substring(0, Math.min(3, example.length));
+      const extracted = example.substring(0, Math.min(3, example.length));
+      return `${extracted} ${extracted} ${extracted}`;
     }
     
     // Pour les consonnes simples, ajouter "a" pour faciliter la prononciation
     if (!'aeiouy'.includes(phoneme)) {
-      return phoneme + 'a';
+      return `${phoneme}a ${phoneme}a ${phoneme}a`;
     }
     
-    return phoneme;
+    // Pour les voyelles, répéter
+    return `${phoneme} ${phoneme} ${phoneme}`;
   }
 
   /**
@@ -205,8 +242,8 @@ export class PhonemeAudioService {
         utterance.voice = this.voice;
       }
       
-      utterance.rate = 0.7;
-      utterance.pitch = 1.1;
+      utterance.rate = 0.6;  // Très lent
+      utterance.pitch = 1.2;  // Aigu
       utterance.volume = 1.0;
       
       utterance.onend = () => resolve();

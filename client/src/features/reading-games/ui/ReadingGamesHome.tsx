@@ -85,6 +85,18 @@ export default function ReadingGamesHome() {
     return progress.find(p => p.gameSlug === slug);
   };
 
+  const isGameUnlocked = (slug: string): boolean => {
+    return ReadingGamesAdapter.isGameUnlocked(slug, progress);
+  };
+
+  const getPreviousGameTitle = (slug: string): string => {
+    const level = ReadingGamesAdapter.slugToLevel(slug);
+    if (level === 1) return '';
+    const prevSlug = ReadingGamesAdapter.levelToSlug(level - 1);
+    const prevGame = games.find(g => g.slug === prevSlug);
+    return prevGame?.title || '';
+  };
+
   const getDifficultyColor = (level: number) => {
     switch (level) {
       case 1: return 'from-green-100 to-green-50 border-green-300';
@@ -174,6 +186,8 @@ export default function ReadingGamesHome() {
           {games.map((game, index) => {
             const gameProgress = getGameProgress(game.slug);
             const stars = gameProgress?.stars || 0;
+            const unlocked = isGameUnlocked(game.slug);
+            const previousGameTitle = getPreviousGameTitle(game.slug);
 
             return (
               <motion.div
@@ -183,19 +197,25 @@ export default function ReadingGamesHome() {
                 transition={{ delay: index * 0.1 }}
               >
                 <button
-                  onClick={() => navigate(`/reading-games/${game.slug}`)}
-                  className={`card w-full border-4 bg-gradient-to-br p-6 text-left transition-all hover:scale-105 ${getDifficultyColor(game.difficulty_level)}`}
+                  onClick={() => unlocked && navigate(`/reading-games/${game.slug}`)}
+                  disabled={!unlocked}
+                  className={`card w-full border-4 bg-gradient-to-br p-6 text-left transition-all ${
+                    unlocked ? 'hover:scale-105' : 'cursor-not-allowed opacity-60'
+                  } ${getDifficultyColor(game.difficulty_level)}`}
                 >
-                  {/* Badge de difficulté */}
+                  {/* Badge de difficulté + icône verrouillage */}
                   <div className="mb-3 flex items-center justify-between">
                     <span className={`rounded-full px-3 py-1 text-child-sm font-bold ${
                       game.difficulty_level === 1 ? 'bg-green-200 text-green-800' :
                       game.difficulty_level === 2 ? 'bg-yellow-200 text-yellow-800' :
                       'bg-red-200 text-red-800'
                     }`}>
-                      {getDifficultyLabel(game.difficulty_level)}
+                      Niveau {ReadingGamesAdapter.slugToLevel(game.slug)} - {getDifficultyLabel(game.difficulty_level)}
                     </span>
-                    {gameProgress?.completed && (
+                    {!unlocked && (
+                      <span className="text-2xl">🔒</span>
+                    )}
+                    {gameProgress?.completed && unlocked && (
                       <span className="text-2xl">✅</span>
                     )}
                   </div>
@@ -205,9 +225,9 @@ export default function ReadingGamesHome() {
                     {game.title}
                   </h3>
 
-                  {/* Description */}
+                  {/* Description ou message de verrouillage */}
                   <p className="mb-4 text-child-sm text-gray-600">
-                    {game.description}
+                    {unlocked ? game.description : `🔒 Termine "${previousGameTitle}" pour débloquer ce niveau`}
                   </p>
 
                   {/* Étoiles */}
@@ -217,11 +237,13 @@ export default function ReadingGamesHome() {
                   </div>
 
                   {/* Bouton Jouer */}
-                  <div className="mt-4">
-                    <span className="inline-block rounded-xl bg-white/80 px-4 py-2 font-bold text-indigo-700">
-                      {gameProgress?.completed ? 'Rejouer' : 'Jouer'} →
-                    </span>
-                  </div>
+                  {unlocked && (
+                    <div className="mt-4">
+                      <span className="inline-block rounded-xl bg-white/80 px-4 py-2 font-bold text-indigo-700">
+                        {gameProgress?.completed ? 'Rejouer' : 'Jouer'} →
+                      </span>
+                    </div>
+                  )}
                 </button>
               </motion.div>
             );

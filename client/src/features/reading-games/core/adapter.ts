@@ -126,6 +126,24 @@ export const ReadingGamesAdapter = {
   },
 
   /**
+   * Détermine si un jeu est débloqué
+   * Règle: le niveau N est débloqué si le niveau N-1 a au moins 1 étoile
+   */
+  isGameUnlocked(gameSlug: string, progress: ProgressView[]): boolean {
+    const level = this.slugToLevel(gameSlug);
+    
+    // Niveau 1 (magic-sound) toujours débloqué
+    if (level === 1) return true;
+    
+    // Pour les autres, vérifier que le niveau précédent est complété
+    const previousSlug = this.levelToSlug(level - 1);
+    const previousProgress = progress.find(p => p.gameSlug === previousSlug);
+    
+    // Débloqué si le niveau précédent a au moins 1 étoile
+    return previousProgress ? previousProgress.stars >= 1 : false;
+  },
+
+  /**
    * Enregistre ou met à jour la progression
    * Utilise l'API de progression existante
    */

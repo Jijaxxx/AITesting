@@ -2,34 +2,59 @@
 
 Module de jeux de lecture pour l'application Lectio.
 
+# Reading Games Module
+
+Module de jeux de lecture pour l'application Lectio.
+
 ## 📚 Vue d'ensemble
 
-Les Reading Games sont une collection de 6 mini-jeux éducatifs conçus pour enseigner la lecture aux enfants de manière ludique et progressive. Le module suit une architecture modulaire et isolée qui permet une intégration non-disruptive avec l'application existante.
+Les Reading Games sont une collection de **6 mini-jeux éducatifs** conçus pour enseigner la lecture aux enfants de manière ludique et progressive. Le module suit une architecture modulaire et isolée avec **système de progression séquentielle** : chaque niveau doit être validé (≥1⭐) pour débloquer le suivant.
 
-## 🎮 Jeux disponibles
+## 🎮 Jeux Implémentés ✅
 
-### Phase 1 (Implémenté)
-- **✅ MagicSound** (`sound_to_letter`) - Difficulté: 1/3
-  - Associer un son à la lettre correspondante
-  - 8 rounds, 3 choix par round
-  - Système d'étoiles: ≥90% = 3★, ≥70% = 2★, ≥50% = 1★
+Tous les 6 jeux sont **production-ready** avec système de déverrouillage :
 
-### Phase 2 (À venir)
-- **🚧 GestureToLetter** (`gesture_to_letter`) - Difficulté: 1/3
-  - Apprendre les gestes Borel-Maisonny
-  
-- **🚧 HiddenWords** (`word_to_image`) - Difficulté: 2/3
-  - Associer des mots à des images
+### Niveau 1 : 🔊 MagicSound (sound_to_letter)
+- **Objectif** : Associer un son phonétique à la lettre correspondante
+- **Mécanique** : Écoute du son → choix parmi 3 lettres
+- **Phonèmes** : 20 sons (a-z + ch, ou, on, an, in)
+- **Rounds** : 8 questions
+- **Débloqué** : ✅ Toujours (premier niveau)
 
-- **🚧 MagicStory** (`sentence_comprehension`) - Difficulté: 3/3
-  - Compréhension de phrases et histoires
+### Niveau 2 : � GestureToLetter (gesture_to_letter)
+- **Objectif** : Associer un geste Borel-Maisonny à la lettre
+- **Mécanique** : Vue d'un geste (emoji + description) → choix parmi 3 lettres
+- **Gestes** : 10 gestes différents (f, s, m, l, r, ch, a, o, i, u)
+- **Rounds** : 6 questions
+- **Débloqué** : Si Niveau 1 ≥ 1⭐
 
-### Phase 3 (À venir)
-- **🚧 FriendsOfSounds** (`character_sound_matching`) - Difficulté: 1/3
-  - Identifier les personnages-sons
+### Niveau 3 : 🎵 FriendsOfSounds (character_sound_matching)
+- **Objectif** : Associer lettres et images qui commencent par le même son
+- **Mécanique** : Matching game (clic lettre → clic image)
+- **Paires** : 8 paires disponibles (a/avion, b/ballon, s/serpent, etc.)
+- **Rounds** : 5 paires à trouver
+- **Débloqué** : Si Niveau 2 ≥ 1⭐
 
-- **🚧 MagicSyllables** (`syllable_builder`) - Difficulté: 2/3
-  - Construire des syllabes
+### Niveau 4 : 🔤 MagicSyllables (syllable_builder)
+- **Objectif** : Construire des syllabes en assemblant 2 lettres
+- **Mécanique** : Écoute syllabe → sélection de 2 lettres → validation
+- **Syllabes** : MA, PA, FA, LA, LI, LO, LU, MI, PI, FI
+- **Rounds** : 8 questions
+- **Débloqué** : Si Niveau 3 ≥ 1⭐
+
+### Niveau 5 : 📖 HiddenWords (word_to_image)
+- **Objectif** : Lire et associer un mot à son image
+- **Mécanique** : Vue d'une image → choix parmi 3 mots écrits
+- **Mots** : 10 mots (chat, lune, papa, maman, ballon, etc.)
+- **Rounds** : 7 questions
+- **Débloqué** : Si Niveau 4 ≥ 1⭐
+
+### Niveau 6 : 📗 MagicStory (sentence_comprehension)
+- **Objectif** : Lire une phrase et répondre à une question de compréhension
+- **Mécanique** : Lecture phrase (+ audio) → question → choix parmi 3 réponses
+- **Phrases** : 8 phrases avec questions
+- **Rounds** : 6 questions
+- **Débloqué** : Si Niveau 5 ≥ 1⭐
 
 ## 🏗️ Architecture
 
@@ -40,18 +65,36 @@ client/src/features/reading-games/
 ├── core/
 │   ├── types.ts              # Types TypeScript (GameType, ReadingGame, Progress)
 │   ├── catalog.seed.json     # Catalogue des 6 jeux avec métadonnées
-│   └── adapter.ts            # Adaptateur pour intégration avec services existants
+│   └── adapter.ts            # Adaptateur avec offline-first + système de déverrouillage
 ├── games/
-│   └── MagicSound.tsx        # Jeu #1: Son vers Lettre (implémenté)
-└── ui/
-    ├── ReadingGamesHome.tsx  # Page d'accueil listant les jeux
-    ├── GameLoader.tsx        # Chargeur dynamique de jeux
-    └── ProgressPage.tsx      # Page de progression globale
+│   ├── MagicSound.tsx        # Niveau 1: Son vers Lettre ✅
+│   ├── GestureToLetter.tsx   # Niveau 2: Gestes Borel-Maisonny ✅
+│   ├── FriendsOfSounds.tsx   # Niveau 3: Matching lettre-image ✅
+│   ├── MagicSyllables.tsx    # Niveau 4: Construction de syllabes ✅
+│   ├── HiddenWords.tsx       # Niveau 5: Mot vers image ✅
+│   └── MagicStory.tsx        # Niveau 6: Compréhension de phrases ✅
+├── ui/
+│   ├── ReadingGamesHome.tsx  # Page d'accueil avec progression séquentielle
+│   ├── GameLoader.tsx        # Chargeur dynamique des 6 jeux
+│   └── ProgressPage.tsx      # Page de progression globale
+├── PROGRESSION.md            # 📘 Documentation système de progression
+└── README.md                 # Ce fichier
+```
+
+### Services externes
+
+```
+client/src/services/
+└── phonemeAudio.ts           # Service de prononciation phonétique avancée
 ```
 
 ### Pattern d'adaptateur
 
-Le module utilise un **adapter pattern** pour s'intégrer avec les services existants sans modifier la base de données ni casser les fonctionnalités existantes :
+Le module utilise un **adapter pattern** pour s'intégrer avec les services existants sans modifier la base de données ni casser les fonctionnalités existantes. Il inclut également :
+
+- **Offline-First** : Sauvegarde automatique dans localStorage si l'API est indisponible
+- **Système de déverrouillage** : Logique de progression séquentielle intégrée
+- **Synchronisation** : Push automatique des données locales quand l'API revient en ligne
 
 ```typescript
 // Reading Games utilise les mêmes tables mais avec des IDs distincts
@@ -67,11 +110,18 @@ ReadingGamesAdapter.upsertProgress({
 
 progressApi.upsert({
   profileId: profileId,
-  world: 99,  // ID réservé pour Reading Games
-  level: 1,   // Dérivé du slug
+  world: 4,   // World 4 réservé pour Reading Games
+  level: 1,   // Dérivé du slug (magic-sound = level 1)
   stars: 3,
-  xp: 950     // score * 10
+  xp: 95      // Score stocké comme XP
 })
+
+// Vérification déverrouillage
+ReadingGamesAdapter.isGameUnlocked('gesture-to-letter', progress)
+// → true si 'magic-sound' a au moins 1⭐
+
+// Stockage offline automatique si API indisponible
+// localStorage key: 'rg-progress:<userId>'
 ```
 
 ### Contrat de données
@@ -115,6 +165,24 @@ export const FEATURES = {
 
 ## 📊 Système de progression
 
+### Progression Séquentielle 🔒
+
+Les jeux sont organisés en **6 niveaux** avec déverrouillage progressif :
+
+1. **Niveau 1 toujours accessible** (MagicSound)
+2. **Niveaux 2-6 verrouillés** jusqu'à validation du niveau précédent
+3. **Validation** : Obtenir au moins **1 étoile** (≥50% de réussite)
+4. **UI verrouillée** : Icône 🔒, opacité réduite, message explicatif
+
+**Exemple de flux** :
+```
+Niveau 1 (Magic Sound) → Jouer → Score 75% → 2⭐ → Validé ✅
+  ↓
+Niveau 2 (Gesture to Letter) → Débloqué 🔓 → Jouer
+  ↓
+Niveau 3 (Friends of Sounds) → Toujours verrouillé 🔒
+```
+
 ### Calcul des étoiles
 
 Chaque jeu calcule les étoiles en fonction du score :
@@ -124,11 +192,12 @@ Chaque jeu calcule les étoiles en fonction du score :
 - **1 étoile** : ≥ 50% de réussite
 - **0 étoile** : < 50% de réussite
 
-### Sauvegarde automatique
+### Sauvegarde automatique (Offline-First)
 
-La progression est sauvegardée automatiquement via l'adapter :
+La progression est sauvegardée **automatiquement** avec fallback offline :
 
 ```typescript
+// Essai sauvegarde API
 await ReadingGamesAdapter.upsertProgress({
   userId: currentProfile.id,
   gameSlug: 'magic-sound',
@@ -136,7 +205,15 @@ await ReadingGamesAdapter.upsertProgress({
   score: 95,
   completed: true
 })
+
+// ❌ Si API indisponible → localStorage automatiquement
+// ✅ Quand API revient → bouton "Forcer la synchronisation"
 ```
+
+**Indicateurs UI** :
+- Badge "En ligne" (vert) / "Hors ligne" (rouge)
+- Bannière jaune d'avertissement si offline
+- Bouton de synchronisation manuelle
 
 ### Affichage de progression
 
@@ -279,31 +356,34 @@ Créer fichiers de traduction :
 
 ## 📈 Roadmap
 
-### ✅ Phase 1 (Complété)
+### ✅ Implémentation Complète (v1.0)
 - [x] Types et interfaces
 - [x] Catalogue de jeux
-- [x] Adapter pattern
-- [x] MagicSound game
-- [x] ReadingGamesHome UI
+- [x] Adapter pattern avec offline-first
+- [x] **Système de progression séquentielle**
+- [x] **MagicSound** (Niveau 1)
+- [x] **GestureToLetter** (Niveau 2)
+- [x] **FriendsOfSounds** (Niveau 3)
+- [x] **MagicSyllables** (Niveau 4)
+- [x] **HiddenWords** (Niveau 5)
+- [x] **MagicStory** (Niveau 6)
+- [x] ReadingGamesHome UI avec verrouillage
 - [x] GameLoader dynamique
 - [x] ProgressPage
 - [x] Routing intégré
 - [x] Feature flag
+- [x] PhonemeAudioService (prononciation avancée)
+- [x] Documentation complète (PROGRESSION.md)
 
-### 🚧 Phase 2 (En cours)
-- [ ] GestureToLetter
-- [ ] HiddenWords
-- [ ] MagicStory
-- [ ] i18n EN/FR
-- [ ] Tests manuels complets
-
-### ⏳ Phase 3 (Planifié)
-- [ ] FriendsOfSounds
-- [ ] MagicSyllables
-- [ ] SentenceComprehension
-- [ ] Tests automatisés
-- [ ] Analytics/telemetry
-- [ ] Améliorations UX (animations, sons)
+### 🚀 Améliorations Futures (v2.0)
+- [ ] **i18n** : Traductions EN/FR complètes
+- [ ] **Analytics** : Tracking des scores, temps de jeu, abandons
+- [ ] **Animations** : Effets de déverrouillage, confettis
+- [ ] **Assets** : Vrais images Borel-Maisonny, photos au lieu d'emojis
+- [ ] **Audio** : Fichiers pré-enregistrés pour meilleure qualité
+- [ ] **Mode révision** : Rejouer uniquement les erreurs
+- [ ] **Badges** : Système de récompenses (médailles, succès)
+- [ ] **Tests automatisés** : Unit + E2E tests
 
 ## 🤝 Contribution
 

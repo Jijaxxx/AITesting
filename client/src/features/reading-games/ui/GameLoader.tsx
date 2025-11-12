@@ -13,6 +13,11 @@ import PageTransition from '../../../components/PageTransition';
 
 // Import des jeux
 import MagicSound from '../games/MagicSound';
+import GestureToLetter from '../games/GestureToLetter';
+import FriendsOfSounds from '../games/FriendsOfSounds';
+import MagicSyllables from '../games/MagicSyllables';
+import HiddenWords from '../games/HiddenWords';
+import MagicStory from '../games/MagicStory';
 
 interface GameFinishData {
   stars: 0 | 1 | 2 | 3;
@@ -152,21 +157,50 @@ export default function GameLoader() {
           />
         );
 
-      // Les autres jeux seront ajoutés ici en Phase 2 et 3
       case 'gesture_to_letter':
-        return <ComingSoon gameName={game.title} onBack={handleQuit} />;
+        return (
+          <GestureToLetter
+            onFinish={handleFinish}
+            onQuit={handleQuit}
+            config={game as any}
+          />
+        );
       
       case 'character_sound_matching':
-        return <ComingSoon gameName={game.title} onBack={handleQuit} />;
+        return (
+          <FriendsOfSounds
+            onFinish={handleFinish}
+            onQuit={handleQuit}
+            config={game as any}
+          />
+        );
       
       case 'syllable_builder':
-        return <ComingSoon gameName={game.title} onBack={handleQuit} />;
+        return (
+          <MagicSyllables
+            onFinish={handleFinish}
+            onQuit={handleQuit}
+            config={game as any}
+          />
+        );
       
       case 'word_to_image':
-        return <ComingSoon gameName={game.title} onBack={handleQuit} />;
+        return (
+          <HiddenWords
+            onFinish={handleFinish}
+            onQuit={handleQuit}
+            config={game as any}
+          />
+        );
       
       case 'sentence_comprehension':
-        return <ComingSoon gameName={game.title} onBack={handleQuit} />;
+        return (
+          <MagicStory
+            onFinish={handleFinish}
+            onQuit={handleQuit}
+            config={game as any}
+          />
+        );
 
       default:
         return (
@@ -185,30 +219,4 @@ export default function GameLoader() {
   };
 
   return <PageTransition>{renderGame()}</PageTransition>;
-}
-
-/**
- * Composant "À venir" pour les jeux pas encore implémentés
- */
-function ComingSoon({ gameName, onBack }: { gameName: string; onBack: () => void }) {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="card max-w-md text-center"
-      >
-        <div className="mb-4 text-6xl">🚧</div>
-        <h2 className="mb-2 font-display text-child-xl font-bold text-indigo-700">
-          {gameName}
-        </h2>
-        <p className="mb-6 text-child-base text-gray-600">
-          Ce jeu sera bientôt disponible !
-        </p>
-        <button onClick={onBack} className="btn btn-primary">
-          Retour aux jeux
-        </button>
-      </motion.div>
-    </div>
-  );
 }
