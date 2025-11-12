@@ -7,17 +7,33 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import type { GameProps, GameResult } from '../core/types';
 import { useSpeech } from '../../../hooks/useSpeech';
+import { usePhonemeAudio } from '../../../services/phonemeAudio';
 
-// Configuration du jeu
+// Configuration du jeu - Sons phonétiques français
 const SOUND_TO_LETTER_MAP: Record<string, string[]> = {
+  // Voyelles simples
   'a': ['a', 'â', 'à'],
   'e': ['e', 'é', 'è', 'ê'],
-  'i': ['i', 'î'],
+  'i': ['i', 'î', 'ï'],
   'o': ['o', 'ô'],
-  'u': ['u', 'û'],
-  'ch': ['ch'],
+  'u': ['u', 'û', 'ù'],
+  
+  // Consonnes courantes
   'f': ['f', 'ph'],
   's': ['s', 'ss', 'c'],
+  'm': ['m', 'mm'],
+  'l': ['l', 'll'],
+  'r': ['r', 'rr'],
+  'n': ['n', 'nn'],
+  'p': ['p', 'pp'],
+  't': ['t', 'tt'],
+  
+  // Digraphes et sons complexes (IMPORTANT pour l'apprentissage)
+  'ch': ['ch'],      // /ʃ/ - Le son problématique mentionné
+  'ou': ['ou', 'où'],
+  'on': ['on', 'om'],
+  'an': ['an', 'en', 'am', 'em'],
+  'in': ['in', 'im', 'ain', 'ein'],
 };
 
 const SOUNDS = Object.keys(SOUND_TO_LETTER_MAP);
@@ -31,6 +47,7 @@ export default function MagicSound({ onFinish, onQuit, config }: GameProps) {
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   
   const { speak } = useSpeech({ rate: 0.85, pitch: 1.0 });
+  const { speakPhoneme } = usePhonemeAudio();
 
   // Générer une nouvelle question
   const generateQuestion = () => {
@@ -53,9 +70,13 @@ export default function MagicSound({ onFinish, onQuit, config }: GameProps) {
     setOptions(allOptions);
     setFeedback(null);
     
-    // Lire le son
+    // Lire l'instruction puis le phonème
     setTimeout(() => {
-      speak(`Trouve la lettre qui fait le son ${sound}`);
+      speak('Trouve la lettre qui fait le son');
+      // Puis prononcer le phonème avec le service dédié
+      setTimeout(() => {
+        speakPhoneme(sound);
+      }, 1800);
     }, 500);
   };
 
@@ -175,13 +196,16 @@ export default function MagicSound({ onFinish, onQuit, config }: GameProps) {
           className="mb-12 text-center"
         >
           <button
-            onClick={() => speak(`Le son ${currentSound}`)}
-            className="mb-4 rounded-full bg-purple-500 p-12 text-6xl shadow-2xl transition-transform hover:scale-110"
+            onClick={() => {
+              speak('Le son');
+              setTimeout(() => speakPhoneme(currentSound), 800);
+            }}
+            className="mb-4 rounded-full bg-purple-500 p-12 text-6xl shadow-2xl transition-transform hover:scale-110 active:scale-95"
           >
             🔊
           </button>
           <p className="text-child-lg font-bold text-gray-700">
-            Trouve la lettre qui fait le son "{currentSound}"
+            Clique pour réécouter le son
           </p>
         </motion.div>
 
