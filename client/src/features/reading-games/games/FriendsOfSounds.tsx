@@ -41,6 +41,13 @@ export default function FriendsOfSounds({ onFinish, onQuit }: GameProps) {
 
   const PAIRS_COUNT = 5; // 5 paires à trouver
 
+  // Effet qui détecte la fin du jeu dès que toutes les paires sont trouvées
+  useEffect(() => {
+    if (matchedPairs.length >= PAIRS_COUNT * 2) {
+      setGameComplete(true);
+    }
+  }, [matchedPairs]);
+
   useEffect(() => {
     initializeGame();
   }, []);
@@ -107,22 +114,15 @@ export default function FriendsOfSounds({ onFinish, onQuit }: GameProps) {
           // Match trouvé !
           setScore(prev => prev + 1);
           setMatchedPairs(prev => [...prev, newSelected[0], newSelected[1]]);
-          
           // Marquer comme matched
           setItems(prev =>
             prev.map(item =>
               newSelected.includes(item.id) ? { ...item, matched: true } : item
             )
           );
-
           // Réinitialiser sélection après un délai
           setTimeout(() => {
             setSelectedItems([]);
-            
-            // Vérifier si tous les pairs sont trouvés
-            if (matchedPairs.length + 2 >= PAIRS_COUNT * 2) {
-              setGameComplete(true);
-            }
           }, 1000);
         } else {
           // Pas de match, réinitialiser après un délai
@@ -223,11 +223,11 @@ export default function FriendsOfSounds({ onFinish, onQuit }: GameProps) {
           return (
             <motion.button
               key={item.id}
-              onClick={() => handleItemClick(item.id)}
-              disabled={isMatched}
-              className={`card aspect-square border-4 p-4 transition-all ${
+              onClick={() => !isMatched && handleItemClick(item.id)}
+              // Ne pas utiliser disabled, juste ignorer le clic si matched
+              className={`card aspect-square border-4 p-4 transition-all relative ${
                 isMatched
-                  ? 'border-green-400 bg-green-100 opacity-60'
+                  ? 'border-green-400 bg-green-100 opacity-60 pointer-events-none'
                   : isSelected
                   ? 'border-blue-500 bg-blue-100 scale-110'
                   : 'border-gray-300 bg-white hover:scale-110 hover:border-blue-400'
@@ -252,6 +252,7 @@ export default function FriendsOfSounds({ onFinish, onQuit }: GameProps) {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="absolute inset-0 flex items-center justify-center text-4xl"
+                  style={{ pointerEvents: 'none' }}
                 >
                   ✅
                 </motion.div>
