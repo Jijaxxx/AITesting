@@ -38,7 +38,7 @@ export default function BigButton({
       disabled={disabled}
       whileHover={{ scale: disabled ? 1 : 1.05 }}
       whileTap={{ scale: disabled ? 1 : 0.95 }}
-      {...props}
+      {...(props as any)}
     >
       {icon && <span className="text-3xl">{icon}</span>}
       <span>{children}</span>

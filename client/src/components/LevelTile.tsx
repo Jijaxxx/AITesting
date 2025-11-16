@@ -1,12 +1,11 @@
 interface LevelTileProps {
-  world: number;
   level: number;
   stars: number;
   isLocked?: boolean;
   onPlay: () => void;
 }
 
-export default function LevelTile({ world, level, stars, isLocked = false, onPlay }: LevelTileProps) {
+export default function LevelTile({ level, stars, isLocked = false, onPlay }: LevelTileProps) {
   return (
     <button
       onClick={onPlay}
