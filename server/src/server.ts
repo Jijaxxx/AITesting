@@ -12,14 +12,19 @@ import syncRoutes from './routes/sync.js';
 import exportRoutes from './routes/export.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Middleware de sécurité
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: process.env.CORS_ORIGIN || [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://192.168.1.24:5173',
+      'http://192.168.1.24:5174',
+    ],
     credentials: true,
   })
 );
@@ -58,7 +63,8 @@ app.get('/health', (_req, res) => {
 app.use(errorHandler);
 
 // Démarrer le serveur
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT} in ${NODE_ENV} mode`);
-  console.log(`📍 API endpoint: http://localhost:${PORT}/api`);
+  console.log(`📍 Local: http://localhost:${PORT}/api`);
+  console.log(`📍 Network: http://192.168.1.24:${PORT}/api`);
 });
