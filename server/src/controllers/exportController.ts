@@ -15,8 +15,8 @@ export const exportProfile = async (req: Request, res: Response) => {
     where: { id: profileId },
     include: {
       progress: true,
-      errorStats: true,
-      reward: true,
+      errors: true,
+      rewards: true,
     },
   });
 
@@ -59,17 +59,15 @@ export const importProfile = async (req: Request, res: Response) => {
       progress: {
         create: profile.progress || [],
       },
-      errorStats: {
-        create: profile.errorStats || [],
+      errors: {
+        create: profile.errors || [],
       },
-      reward: {
-        create: profile.reward || { badges: [], stickers: [] },
-      },
+      rewards: profile.rewards ? { create: profile.rewards } : undefined,
     },
     include: {
       progress: true,
-      errorStats: true,
-      reward: true,
+      errors: true,
+      rewards: true,
     },
   });
 

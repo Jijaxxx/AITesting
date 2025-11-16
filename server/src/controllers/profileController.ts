@@ -36,7 +36,7 @@ export const getProfileById = async (req: Request, res: Response) => {
     where: { id },
     include: {
       progress: { orderBy: [{ world: 'asc' }, { level: 'asc' }] },
-      errorStats: { orderBy: { count: 'desc' } },
+      errors: { orderBy: { count: 'desc' } },
       rewards: true,
     },
   });
