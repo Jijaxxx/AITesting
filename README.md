@@ -36,9 +36,6 @@ Application web full-stack pour enfants (3-8 ans) apprenant à lire en français
 ```powershell
 # À la racine
 npm install
-
-# Installer dépendances server
-cd server
 npm install
 
 # Installer dépendances client
@@ -64,6 +61,22 @@ PORT=3000
 CORS_ORIGIN=http://localhost:5173
 NODE_ENV=development
 ```
+
+## Deployment (Docker)
+
+See `DEPLOYMENT.md` for a production-ready Docker Compose setup that builds and runs:
+- `web` (Nginx + built React client)
+- `api` (Express + Prisma, with migrations on start)
+- `postgres` (Postgres 15)
+
+Quick start on a VPS:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+App: `http://<VPS_IP>/` — API proxied at `/api`.
 
 **client/.env**
 ```properties

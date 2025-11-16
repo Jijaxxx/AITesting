@@ -1,0 +1,134 @@
+name: Build, Push, and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # allow pushing to GHCR
+    outputs:
+      image_web: ${{ steps.vars.outputs.image_web }}
+      image_api: ${{ steps.vars.outputs.image_api }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute dynamic image names
+        id: vars
+        shell: bash
+        run: |
+          OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          REPO_LC="${REPO_NAME,,}"
+          echo "owner_lc=$OWNER_LC" >> $GITHUB_OUTPUT
+          echo "repo_lc=$REPO_LC" >> $GITHUB_OUTPUT
+          echo "image_web=ghcr.io/$OWNER_LC/$REPO_LC-web" >> $GITHUB_OUTPUT
+          echo "image_api=ghcr.io/$OWNER_LC/$REPO_LC-api" >> $GITHUB_OUTPUT
+
+      - name: Build and push WEB image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: client/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=/api
+          tags: |
+            ${{ steps.vars.outputs.image_web }}:latest
+            ${{ steps.vars.outputs.image_web }}:${{ github.sha }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: server/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.vars.outputs.image_api }}:latest
+            ${{ steps.vars.outputs.image_api }}:${{ github.sha }}
+
+  deploy:
+    name: Deploy to VPS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Prepare docker-compose file artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-prod
+          path: |
+            docker-compose.prod.yml
+
+      - name: Download docker-compose on runner
+        uses: actions/download-artifact@v4
+        with:
+          name: compose-prod
+          path: ./deploy-artifacts
+
+      - name: Copy compose file to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "deploy-artifacts/docker-compose.prod.yml"
+          target: ${{ secrets.VPS_APP_DIR }}
+          strip_components: 1
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            APP_DIR=${{ secrets.VPS_APP_DIR }}
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+
+            # Optional: write/update .env with DB URL or CORS, if provided as secrets
+            if [ -n "${{ secrets.API_DATABASE_URL }}" ]; then
+              grep -q '^DATABASE_URL=' .env 2>/dev/null && sed -i "s|^DATABASE_URL=.*$|DATABASE_URL=${{ secrets.API_DATABASE_URL }}|" .env || echo "DATABASE_URL=${{ secrets.API_DATABASE_URL }}" >> .env
+            fi
+            if [ -n "${{ secrets.API_CORS_ORIGIN }}" ]; then
+              grep -q '^CORS_ORIGIN=' .env 2>/dev/null && sed -i "s|^CORS_ORIGIN=.*$|CORS_ORIGIN=${{ secrets.API_CORS_ORIGIN }}|" .env || echo "CORS_ORIGIN=${{ secrets.API_CORS_ORIGIN }}" >> .env
+            fi
+
+            # Login to GHCR for pulling private images (requires read:packages PAT)
+            if [ -n "${{ secrets.GHCR_READ_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
+              echo "Logging in to GHCR..."
+              echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_READ_USERNAME }}" --password-stdin
+            fi
+
+            # Export dynamic image names for compose substitution
+            export IMAGE_WEB='${{ needs.build-and-push.outputs.image_web }}:latest'
+            export IMAGE_API='${{ needs.build-and-push.outputs.image_api }}:latest'
+
+            echo "Pulling and restarting stack..."
+            docker compose -f docker-compose.prod.yml --env-file .env pull
+            docker compose -f docker-compose.prod.yml --env-file .env up -d
+
+            echo "Pruning old images..."
+            docker image prune -f

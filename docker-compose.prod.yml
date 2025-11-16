@@ -2,12 +2,7 @@ version: '3.8'
 
 services:
   web:
-    build:
-      context: .
-      dockerfile: client/Dockerfile
-      args:
-        # Override at build time if you host API elsewhere
-        - VITE_API_BASE_URL=/api
+    image: ${IMAGE_WEB}
     container_name: lectio-web
     restart: unless-stopped
     ports:
@@ -16,18 +11,15 @@ services:
       - api
 
   api:
-    build:
-      context: .
-      dockerfile: server/Dockerfile
+    image: ${IMAGE_API}
     container_name: lectio-api
     restart: unless-stopped
     environment:
-      # Example: update with your VPS values or use an .env file
       - NODE_ENV=production
       - PORT=3000
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/lectio_mvp?schema=public
-      # Optional: set explicit origins, comma-separated (e.g., https://app.mydomain.com)
-      # - CORS_ORIGIN=http://your-domain
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/lectio_mvp?schema=public}
+      # Optionally set explicit allowed origins (comma-separated)
+      # - CORS_ORIGIN=${CORS_ORIGIN}
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,8 +39,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: lectio_mvp
-    ports:
-      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
