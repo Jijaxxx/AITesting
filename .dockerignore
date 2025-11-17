@@ -1,0 +1,18 @@
+# Global ignores
+.git
+.gitignore
+**/node_modules
+**/dist
+**/.cache
+**/.DS_Store
+
+# Do not send local envs into the Docker build context
+client/.env
+client/.env.*
+server/.env
+server/.env.*
+.env
+.env.*
+
+# Logs
+**/*.log
