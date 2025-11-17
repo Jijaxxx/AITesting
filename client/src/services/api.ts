@@ -12,7 +12,10 @@ async function fetcher<T>(endpoint: string, options: FetchOptions = {}): Promise
     ? API_BASE
     : `${window.location.origin}${API_BASE}`;
 
-  const url = new URL(endpoint, base);
+  // Ensure we treat base as a directory and endpoint as relative
+  const normalizedBase = base.endsWith('/') ? base : base + '/';
+  const normalizedEndpoint = endpoint.replace(/^\//, '');
+  const url = new URL(normalizedEndpoint, normalizedBase);
   if (params) {
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
   }
