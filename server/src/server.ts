@@ -15,46 +15,53 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// Behind Nginx/proxy in production: trust proxy for correct IPs/X-Forwarded-For
+if (NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middleware de sécurité
 app.use(helmet());
 
-// CORS configuration: allow comma-separated CORS_ORIGIN or sensible LAN defaults
-const rawCorsOrigins = process.env.CORS_ORIGIN;
-const envOrigins = rawCorsOrigins
-  ? rawCorsOrigins.split(',').map((s) => s.trim()).filter(Boolean)
-  : [];
-const defaultOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-];
-const allowedOrigins = [...defaultOrigins, ...envOrigins];
+// CORS configuration
+if (NODE_ENV === 'production') {
+  // In production, reflect request origin (serving frontend + API on same host)
+  app.use(cors({ origin: true, credentials: true }));
+} else {
+  // In development, allow localhost/LAN Vite servers + any provided env origins
+  const rawCorsOrigins = process.env.CORS_ORIGIN;
+  const envOrigins = rawCorsOrigins
+    ? rawCorsOrigins.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+  const defaultOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+  ];
+  const allowedOrigins = [...defaultOrigins, ...envOrigins];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow non-browser requests (no Origin header)
-      if (!origin) return callback(null, true);
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Allow non-browser requests (no Origin header)
+        if (!origin) return callback(null, true);
 
-      // Allow explicit list from env/defaults
-      const inList = allowedOrigins.includes(origin);
+        // Allow explicit list from env/defaults
+        const inList = allowedOrigins.includes(origin);
 
-      // Allow common LAN patterns for Vite dev server (5173/5174)
-      const lanMatch = /^http:\/\/(192\.168|10\.|172\.(1[6-9]|2\d|3[0-1]))\.[0-9]+\.[0-9]+:517[3-4]$/.test(
-        origin
-      );
-      const loopbackMatch = /^http:\/\/(localhost|127\.0\.0\.1):517[3-4]$/.test(
-        origin
-      );
+        // Allow common LAN patterns for Vite dev server (5173/5174)
+        const lanMatch = /^http:\/\/(192\.168|10\.|172\.(1[6-9]|2\d|3[0-1]))\.[0-9]+\.[0-9]+:517[3-4]$/.test(origin);
+        const loopbackMatch = /^http:\/\/(localhost|127\.0\.0\.1):517[3-4]$/.test(origin);
 
-      if (inList || lanMatch || loopbackMatch) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Not allowed by CORS: ${origin}`));
-      }
-    },
-    credentials: true,
-  })
-);
+        if (inList || lanMatch || loopbackMatch) {
+          callback(null, true);
+        } else {
+          callback(new Error(`Not allowed by CORS: ${origin}`));
+        }
+      },
+      credentials: true,
+    })
+  );
+}
 
 // Rate limiting (100 requêtes par 15 minutes)
 const limiter = rateLimit({
