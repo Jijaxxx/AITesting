@@ -7,7 +7,12 @@ interface FetchOptions extends RequestInit {
 async function fetcher<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { params, ...init } = options;
 
-  const url = new URL(`${API_BASE}${endpoint}`);
+  // Support both absolute (http...) and relative (/api) API bases
+  const base = API_BASE.startsWith('http')
+    ? API_BASE
+    : `${window.location.origin}${API_BASE}`;
+
+  const url = new URL(endpoint, base);
   if (params) {
     Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
   }
