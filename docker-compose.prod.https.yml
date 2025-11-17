@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Terminate TLS and proxy to the web container
+  caddy:
+    image: caddy:2-alpine
+    container_name: lectio-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CADDY_DOMAIN=${CADDY_DOMAIN}
+      - CADDY_EMAIL=${CADDY_EMAIL}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - web
+
+  # Remove host port publish when behind caddy
+  web:
+    ports: []
+
+volumes:
+  caddy_data:
+    name: lectio-caddy-data
+  caddy_config:
+    name: lectio-caddy-config

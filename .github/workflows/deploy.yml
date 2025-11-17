@@ -75,12 +75,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare docker-compose file artifact
+      - name: Prepare deployment artifacts (compose + caddy)
         uses: actions/upload-artifact@v4
         with:
           name: compose-prod
           path: |
             docker-compose.prod.yml
+            docker-compose.prod.https.yml
+            deploy/caddy/Caddyfile
 
       - name: Download docker-compose on runner
         uses: actions/download-artifact@v4
@@ -88,13 +90,16 @@ jobs:
           name: compose-prod
           path: ./deploy-artifacts
 
-      - name: Copy compose file to VPS
+      - name: Copy deployment files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "deploy-artifacts/docker-compose.prod.yml"
+          source: |
+            deploy-artifacts/docker-compose.prod.yml
+            deploy-artifacts/docker-compose.prod.https.yml
+            deploy-artifacts/deploy/caddy/Caddyfile
           target: ${{ secrets.VPS_APP_DIR }}
           strip_components: 1
 
@@ -119,6 +124,14 @@ jobs:
               grep -q '^CORS_ORIGIN=' .env 2>/dev/null && sed -i "s|^CORS_ORIGIN=.*$|CORS_ORIGIN=${{ secrets.API_CORS_ORIGIN }}|" .env || echo "CORS_ORIGIN=${{ secrets.API_CORS_ORIGIN }}" >> .env
             fi
 
+            # Optional: write/update HTTPS domain/email if provided
+            if [ -n "${{ secrets.CADDY_DOMAIN }}" ]; then
+              grep -q '^CADDY_DOMAIN=' .env 2>/dev/null && sed -i "s|^CADDY_DOMAIN=.*$|CADDY_DOMAIN=${{ secrets.CADDY_DOMAIN }}|" .env || echo "CADDY_DOMAIN=${{ secrets.CADDY_DOMAIN }}" >> .env
+            fi
+            if [ -n "${{ secrets.CADDY_EMAIL }}" ]; then
+              grep -q '^CADDY_EMAIL=' .env 2>/dev/null && sed -i "s|^CADDY_EMAIL=.*$|CADDY_EMAIL=${{ secrets.CADDY_EMAIL }}|" .env || echo "CADDY_EMAIL=${{ secrets.CADDY_EMAIL }}" >> .env
+            fi
+
             # Login to GHCR to pull images (uses PAT if provided, else GITHUB_TOKEN)
             GHCR_USER="${{ secrets.GHCR_READ_USERNAME }}"
             GHCR_TOKEN="${{ secrets.GHCR_READ_TOKEN }}"
@@ -131,8 +144,32 @@ jobs:
             export IMAGE_API='${{ needs.build-and-push.outputs.image_api }}:latest'
 
             echo "Pulling and restarting stack..."
-            docker compose -f docker-compose.prod.yml --env-file .env pull
-            docker compose -f docker-compose.prod.yml --env-file .env up -d
+            COMPOSE_FILES="-f docker-compose.prod.yml"
+            if grep -q '^CADDY_DOMAIN=' .env && grep -q '^CADDY_EMAIL=' .env; then
+              if [ -f docker-compose.prod.https.yml ]; then
+                COMPOSE_FILES="-f docker-compose.prod.yml -f docker-compose.prod.https.yml"
+                echo "HTTPS enabled via Caddy for domain $(grep '^CADDY_DOMAIN=' .env | cut -d'=' -f2)"
+              fi
+            fi
+            docker compose $COMPOSE_FILES --env-file .env pull
+            docker compose $COMPOSE_FILES --env-file .env up -d
 
             echo "Pruning old images..."
             docker image prune -f
+
+            # Install/refresh daily PostgreSQL backups at 02:00
+            mkdir -p "$APP_DIR/backups" "$APP_DIR/bin" "$APP_DIR/deploy/caddy"
+            cat > "$APP_DIR/bin/pg_backup.sh" << 'EOF'
+            #!/usr/bin/env bash
+            set -euo pipefail
+            TS=$(date +%F-%H%M%S)
+            OUT_DIR="$HOME/aitesting/backups"
+            mkdir -p "$OUT_DIR"
+            # Use docker exec to dump from the postgres container
+            docker exec lectio-postgres pg_dump -U postgres lectio_mvp | gzip > "$OUT_DIR/lectio_mvp-$TS.sql.gz"
+            # Keep 7 days of backups
+            find "$OUT_DIR" -type f -name 'lectio_mvp-*.sql.gz' -mtime +7 -delete
+            EOF
+            chmod +x "$APP_DIR/bin/pg_backup.sh"
+            # Add cron if not present
+            (crontab -l 2>/dev/null | grep -q pg_backup.sh) || (crontab -l 2>/dev/null; echo "0 2 * * * bash $APP_DIR/bin/pg_backup.sh >> $APP_DIR/backups/backup.log 2>&1") | crontab -
