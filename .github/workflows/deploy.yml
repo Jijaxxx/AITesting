@@ -119,12 +119,6 @@ jobs:
               grep -q '^CORS_ORIGIN=' .env 2>/dev/null && sed -i "s|^CORS_ORIGIN=.*$|CORS_ORIGIN=${{ secrets.API_CORS_ORIGIN }}|" .env || echo "CORS_ORIGIN=${{ secrets.API_CORS_ORIGIN }}" >> .env
             fi
 
-            # Login to GHCR for pulling private images (requires read:packages PAT)
-            if [ -n "${{ secrets.GHCR_READ_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
-              echo "Logging in to GHCR..."
-              echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_READ_USERNAME }}" --password-stdin
-            fi
-
             # Export dynamic image names for compose substitution
             export IMAGE_WEB='${{ needs.build-and-push.outputs.image_web }}:latest'
             export IMAGE_API='${{ needs.build-and-push.outputs.image_api }}:latest'
