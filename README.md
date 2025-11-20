@@ -56,7 +56,7 @@ Ou utilisez votre PostgreSQL local existant.
 
 **server/.env**
 ```properties
-DATABASE_URL="postgresql://AppAi_user:FFp@ss24!@localhost:5432/AiDatabase"
+DATABASE_URL="postgresql://XXXXX:XXXXX!@localhost:5432/AiDatabase"
 PORT=3000
 CORS_ORIGIN=http://localhost:5173
 NODE_ENV=development
